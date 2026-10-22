@@ -31,7 +31,7 @@
 - Реализованы создание и чтение карточек в PostgreSQL.
 - Проверено сохранение данных после удаления и повторного создания контейнеров.
 
-Прототип пока поддерживает только создание и просмотр карточек.
+Прототип поддерживает создание, просмотр и переименование карточек.
 Доски, колонки, drag-and-drop, WIP-лимиты и остальные функции
 из технического задания будут реализованы в следующих лабораторных работах.
 
@@ -102,6 +102,7 @@ API доступен по адресу `http://localhost:8002`.
 | GET | `/health` | Проверка работы API |
 | POST | `/cards` | Создание карточки в PostgreSQL |
 | GET | `/cards` | Получение списка карточек |
+| PATCH | `/cards/{card_id}` | Переименование карточки |
 
 Примеры запросов для терминала Linux:
 
@@ -149,3 +150,64 @@ docker compose logs -f api
 ```
 
 Ctrl+C завершает просмотр логов, контейнеры продолжают работать.
+
+## Лабораторная работа 5
+
+Добавили переименование карточки: `PATCH /cards/{card_id}` принимает новое
+название и сохраняет его в PostgreSQL. Если карточки нет, вернётся 404.
+Пустое название, строка из пробелов и название длиннее 200 символов
+не принимаются: вернётся 422.
+
+```bash
+curl -X PATCH http://localhost:8002/cards/1 \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Обновлённая задача"}'
+```
+
+Изменения делаем в feature-ветке от dev. После успешной сборки создаём
+pull request в dev и просим другого участника команды проверить код.
+После согласования и слияния TeamCity собирает dev, публикует образ
+в Docker Hub и запускает его на stage через SSH Exec.
+
+TeamCity Server и агент работают в Docker на исходной VirtualBox-ВМ
+kanban-test (192.168.56.11), приложение и PostgreSQL — на kanban-stage
+(192.168.56.12). Сеть между стендами — kanban-lab.
+
+В `/home/student/kanban-stage` находятся `compose.yaml` (копия
+`stage.compose.yaml`) и `.env`:
+
+```dotenv
+POSTGRES_DB=kanban
+POSTGRES_USER=kanban
+POSTGRES_PASSWORD=123Qwerty
+KANBAN_IMAGE=petruccio2006/kanban-board:dev
+```
+
+Для ручного запуска на stage:
+
+```bash
+cd /home/student/kanban-stage
+docker compose pull
+docker compose up -d --wait
+curl http://localhost:8005/health
+curl http://localhost:8005/cards
+```
+
+При автоматическом развёртывании TeamCity записывает в `KANBAN_IMAGE`
+уникальный тег текущей сборки вместо общего dev. Данные базы хранятся
+в именованном томе и сохраняются при обновлении API.
+
+Для запуска тестов нужен доступ к PostgreSQL. Из папки проекта скопируем
+тесты в работающий контейнер API и запустим их. Для проекта stage:
+
+```bash
+docker cp tests kanban-stage-api-1:/app/tests
+docker exec kanban-stage-api-1 python -m unittest discover -s /app/tests -v
+```
+
+В CI тесты так же копируются в отдельный тестовый контейнер API;
+для каждого запуска используется своя временная база.
+
+Пять тестов проверяют переименование, чтение обновлённой карточки, запись
+в PostgreSQL, ответы 404 и 422, а также прежние методы health/create/list.
+Тестовые карточки удаляются после каждого теста.
