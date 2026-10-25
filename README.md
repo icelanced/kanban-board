@@ -179,7 +179,7 @@ kanban-test (192.168.56.11), приложение и PostgreSQL — на kanban-
 ```dotenv
 POSTGRES_DB=kanban
 POSTGRES_USER=kanban
-POSTGRES_PASSWORD=123Qwerty
+POSTGRES_PASSWORD=YOUR_PASSWORD_HERE
 KANBAN_IMAGE=petruccio2006/kanban-board:dev
 ```
 
@@ -211,3 +211,30 @@ docker exec kanban-stage-api-1 python -m unittest discover -s /app/tests -v
 Пять тестов проверяют переименование, чтение обновлённой карточки, запись
 в PostgreSQL, ответы 404 и 422, а также прежние методы health/create/list.
 Тестовые карточки удаляются после каждого теста.
+
+## Лабораторная работа 6
+
+В TeamCity перед сборкой добавлены Ruff 0.17.2 (качество Python-кода)
+и Gitleaks 8.30.1 (поиск секретов). Ruff проверяет группы E4, E7, E9 и F.
+У Ruff нет уровней BLOCKER/CRITICAL: любое замечание выбранных правил
+останавливает сборку. Для Gitleaks сборку останавливает любое найденное
+значение секрета. Помимо стандартных правил включены проверки паролей
+в присваиваниях и строках подключения PostgreSQL.
+
+Проверяется текущая версия файлов, а не вся история Git. Старые коммиты
+могут содержать прежние учебные пароли; историю в этой работе не переписывали.
+Пароли передаём через локальный .env и параметры окружения; файл .env в Git
+не добавляем. В README используем только обозначение YOUR_PASSWORD_HERE.
+
+Оба анализатора установлены в /usr/local/bin на kanban-test и подключены
+в агент TeamCity как файлы только для чтения. Команды проверки из корня проекта:
+
+```bash
+ruff check .
+gitleaks dir . --config .gitleaks.toml --redact=100 --verbose
+```
+
+Gitleaks скрывает значения секретов. Шаги TeamCity сохраняют JSON-отчёты
+и HTML-сводку reports/index.html в артефакты, в том числе при ошибке.
+Сводка доступна на вкладке Static analysis. При ошибке анализатора
+сборка образа, публикация и доставка не выполняются.
