@@ -1,0 +1,35 @@
+title = "Kanban Lab6 secret checks"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "literal-password"
+description = "Password literal must be moved to local environment"
+regex = '''(?i)\b[a-z_]*(?:password|passwd|pwd)["']?\s*[:=]\s*(?:[frbu]{1,2})?["']([^"'\r\n]+)["']'''
+secretGroup = 1
+keywords = ["password", "passwd", "pwd"]
+
+[[rules.allowlists]]
+description = "Documented placeholder only; no real passwords allowed"
+regexTarget = "secret"
+regexes = ['''^YOUR_PASSWORD_HERE$''']
+
+[[rules]]
+id = "environment-password"
+description = "Unquoted password literal in environment or YAML"
+regex = '''(?im)^\s*(?:export\s+)?[a-z_]*(?:password|passwd|pwd)\s*[:=]\s*([a-z0-9_!@#%&*+.\-]{4,})\s*$'''
+secretGroup = 1
+keywords = ["password", "passwd", "pwd"]
+
+[[rules.allowlists]]
+description = "Documented placeholder only; no real passwords allowed"
+regexTarget = "secret"
+regexes = ['''^YOUR_PASSWORD_HERE$''']
+
+[[rules]]
+id = "database-url-password"
+description = "Password embedded in database connection URL"
+regex = '''(?i)postgres(?:ql)?://[a-z0-9_]+:([^\s/@${}]+)@'''
+secretGroup = 1
+keywords = ["postgres"]
