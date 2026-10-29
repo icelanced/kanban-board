@@ -12,7 +12,7 @@ class Card(BaseModel):
 
 
 class CardUpdate(BaseModel):
-    title: str = Field(min_length=1, max_length=200, pattern=r"\S")
+    title: str = Field(min_length=1, max_length=201, pattern=r"\S")
 
 
 def connect():
