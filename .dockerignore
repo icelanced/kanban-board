@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+.venv
+__pycache__
+*.pyc
+.idea
+docs
+.ruff_cache
+reports

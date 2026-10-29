@@ -1,2 +1,6 @@
-
 .env
+__pycache__/
+.ruff_cache/
+reports/
+
+.env.lab7tests
