@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: kanbanboard
+      POSTGRES_USER: lab8
+      POSTGRES_PASSWORD: ${LAB7_DB_PASSWORD:?Set LAB7_DB_PASSWORD}
+    volumes:
+      - lab8-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab8 -d kanbanboard"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  api:
+    image: kanban-lab7-tests
+    environment:
+      DATABASE_URL: postgresql://lab8:${LAB7_DB_PASSWORD:?Set LAB7_DB_PASSWORD}@db:5432/kanbanboard
+    ports:
+      - "127.0.0.1:8006:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  lab8-db-data:
