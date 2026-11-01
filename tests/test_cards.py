@@ -22,7 +22,14 @@ class CardRenameTests(unittest.TestCase):
             f"/cards/{self.card['id']}", json={'title': 'Updated task'}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'id': self.card['id'], 'title': 'Updated task'})
+        self.assertEqual(
+            response.json(),
+            {
+                'id': self.card['id'],
+                'title': 'Updated task',
+                'description': None,
+            },
+        )
         cards = self.client.get('/cards').json()
         self.assertIn(response.json(), cards)
         self.assertNotIn(self.card, cards)
@@ -58,6 +65,37 @@ class CardRenameTests(unittest.TestCase):
         self.assertEqual(response.json(), {'status': 'ok', 'project': 'KanbanBoard'})
         self.assertIn(self.card, self.client.get('/cards').json())
 
+    def test_description_is_saved_and_preserved_after_rename(self):
+        description = 'Description for Lab8'
+        response = self.client.post(
+            '/cards',
+            json={'title': 'Description task', 'description': description},
+        )
+        self.assertEqual(response.status_code, 200)
+        card = response.json()
 
+        def cleanup():
+            with connect() as connection:
+                connection.execute(
+                    'DELETE FROM cards WHERE id = %s', (card['id'],)
+                )
+
+        self.addCleanup(cleanup)
+        self.assertEqual(card['description'], description)
+        self.assertIn(card, self.client.get('/cards').json())
+
+        with connect() as connection:
+            row = connection.execute(
+                'SELECT description FROM cards WHERE id = %s',
+                (card['id'],),
+            ).fetchone()
+        self.assertEqual(row[0], description)
+
+        response = self.client.patch(
+            f"/cards/{card['id']}", json={'title': 'Renamed description task'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['description'], description)
+        self.assertIn(response.json(), self.client.get('/cards').json())
 if __name__ == '__main__':
     unittest.main()
