@@ -5,6 +5,8 @@ services:
       POSTGRES_DB: kanbanboard
       POSTGRES_USER: lab8
       POSTGRES_PASSWORD: ${LAB7_DB_PASSWORD:?Set LAB7_DB_PASSWORD}
+    ports:
+      - "192.168.56.11:5438:5432"
     volumes:
       - lab8-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -12,6 +14,7 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
   api:
     image: kanban-lab7-tests
     environment:
@@ -21,5 +24,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
 volumes:
   lab8-db-data:

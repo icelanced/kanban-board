@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict GuELlkIPSnafHNFmkr3ubmT1XR3hcvjYvJwGQSLesYvpLFnHCuY8Tou3ZFNrkVg
+\restrict DgAw59WN7KbIGpJSi6R185GhJAJezlTuSaLh6gOgcRP0dbqdsgo68CPUOKuWMl4
 
 -- Dumped from database version 17.11
 -- Dumped by pg_dump version 17.11
@@ -30,7 +30,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.cards (
     id integer NOT NULL,
     title text NOT NULL,
-    description text
+    description text,
+    due_date date
 );
 
 
@@ -60,5 +61,5 @@ ALTER TABLE ONLY public.cards
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GuELlkIPSnafHNFmkr3ubmT1XR3hcvjYvJwGQSLesYvpLFnHCuY8Tou3ZFNrkVg
+\unrestrict DgAw59WN7KbIGpJSi6R185GhJAJezlTuSaLh6gOgcRP0dbqdsgo68CPUOKuWMl4
 
